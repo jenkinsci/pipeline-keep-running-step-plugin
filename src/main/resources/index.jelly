@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+    This plugin provides keepRunning step to keep the process running even if the build has finished.
+</div>
