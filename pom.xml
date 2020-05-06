@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>pipeline-keep-running-step</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>hpi</packaging>
     <properties>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
@@ -95,7 +95,8 @@
         <connection>scm:git:git://github.com/jenkinsci/pipeline-keep-running-step-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/pipeline-keep-running-step-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/pipeline-keep-running-step-plugin</url>
-    </scm>
+      <tag>v1.0</tag>
+  </scm>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
