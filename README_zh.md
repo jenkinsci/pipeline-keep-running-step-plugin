@@ -14,6 +14,9 @@ sh '/usr/local/apache-tomact/bin/startup.sh
 
 当构建结束时，启动的tomcat进程也会被中止，无法在后台保持运行状态。
 
+很明显，这不是我们想要的。我们希望的是tomcat进程能在后台持续运行。
+
+本插件就能做到这一点！
 
 ## 使用示例
 

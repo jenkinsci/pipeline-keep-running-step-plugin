@@ -16,6 +16,10 @@ sh '/usr/local/apache-tomact/bin/startup.sh
 
 When the build finish, tomcat process will also be killed, which cannot keep running in background.
 
+Obviously, this is not what we want. What we want is for the tomcat process to continue running in the background.
+
+This plugin can do it!
+
 
 ## Usage Example
 
