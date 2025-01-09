@@ -9,76 +9,92 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>pipeline-keep-running-step</artifactId>
-    <version>1.2-SNAPSHOT</version>
+  <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
-    <properties>
-        <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-        <jenkins.version>2.121.2</jenkins.version>
-        <java.level>8</java.level>
-    </properties>
+
     <name>Pipeline Keep Running Step</name>
     <description>
         This plugin provides keepRunning step to keep the process running even if the build has finished.
     </description>
-    <url>https://github.com/jenkinsci/pipeline-keep-running-step-plugin</url>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>https://opensource.org/licenses/MIT</url>
+      <url>https://opensource.org/license/mit/</url>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:git://github.com/jenkinsci/pipeline-keep-running-step-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/pipeline-keep-running-step-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/pipeline-keep-running-step-plugin</url>
+      <tag>pipeline-keep-running-step-1.2</tag>
+  </scm>
+
+  <properties>
+    <revision>1.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+
+    <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.version>2.440.3</jenkins.version>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+
+    <spotless.check.skip>false</spotless.check.skip>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <!-- Pick up common dependencies for the selected LTS line: https://github.com/jenkinsci/bom#usage -->
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.440.x</artifactId>
+        <version>3193.v330d8248d39e</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>1.17</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-step-api</artifactId>
-            <version>2.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>2.39</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
-            <version>2.11.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-basic-steps</artifactId>
-            <version>2.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-durable-task-step</artifactId>
-            <version>2.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>2.20</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-support</artifactId>
-            <version>839.v35e2736cfd5c</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-step-api</artifactId>
-            <version>2.19</version>
         </dependency>
     </dependencies>
 
@@ -91,12 +107,7 @@
       </developer>
     </developers>
 
-    <scm>
-        <connection>scm:git:git://github.com/jenkinsci/pipeline-keep-running-step-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/pipeline-keep-running-step-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/pipeline-keep-running-step-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
