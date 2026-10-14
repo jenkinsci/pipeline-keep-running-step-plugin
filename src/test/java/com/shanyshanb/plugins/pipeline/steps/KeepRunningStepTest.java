@@ -28,8 +28,16 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 @WithJenkins
 class KeepRunningStepTest {
 
-    /** Starts a long-lived background process and records its pid in the workspace. */
-    private static final String START_BACKGROUND_PROCESS = "sh 'sleep 120 & echo $! > pid.txt'";
+    /**
+     * Writes the current time to {@code heartbeat.txt} once a second, then exits on its own after
+     * about 40 seconds so that a surviving process cannot outlive the test run.
+     *
+     * <p>Liveness is deliberately observed through the file rather than through a pid: on Windows the
+     * {@code sh} step runs under Git Bash, whose pids are MSYS pids that {@code ProcessHandle} in the
+     * test JVM cannot resolve (this test used to fail on the windows-21 CI leg for that reason).
+     */
+    private static final String START_HEARTBEAT_PROCESS =
+            "sh 'i=0; while [ $i -lt 40 ]; do date > heartbeat.txt; i=$((i+1)); sleep 1; done > /dev/null 2>&1 &'";
 
     /** Records the JENKINS_NODE_COOKIE the child process actually runs with. */
     private static final String RECORD_COOKIE = "sh 'printf %s \"$JENKINS_NODE_COOKIE\" > cookie.txt'";
@@ -68,18 +76,20 @@ class KeepRunningStepTest {
     void processStartedInsideKeepRunningSurvivesTheBuild(JenkinsRule j) throws Exception {
         WorkflowJob p = j.createProject(WorkflowJob.class, "keepRunningSurvives");
         p.setDefinition(new CpsFlowDefinition(
-                "node {\n    keepRunning {\n        " + START_BACKGROUND_PROCESS + "\n    }\n}\n", true));
+                "node {\n    keepRunning {\n        " + START_HEARTBEAT_PROCESS + "\n    }\n}\n", true));
 
         j.buildAndAssertSuccess(p);
 
-        long pid = Long.parseLong(readFromWorkspace(j, p, "pid.txt"));
-        try {
-            assertTrue(
-                    isAliveAfter(pid, 5_000),
-                    "pid " + pid + " was started inside keepRunning and must outlive the build");
-        } finally {
-            ProcessHandle.of(pid).ifPresent(ProcessHandle::destroyForcibly);
-        }
+        String first = readFromWorkspace(j, p, "heartbeat.txt");
+        Thread.sleep(4_000);
+        String second = readFromWorkspace(j, p, "heartbeat.txt");
+
+        // The loop keeps rewriting the file every second; if the build had killed it, it would be frozen.
+        assertNotEquals(
+                first,
+                second,
+                "the process started inside keepRunning stopped working after the build finished"
+                        + " (heartbeat.txt is still <" + first + ">)");
     }
 
     private static String readFromWorkspace(JenkinsRule j, WorkflowJob p, String file) throws Exception {
@@ -87,20 +97,5 @@ class KeepRunningStepTest {
         String content = ws.child(file).readToString().trim();
         assertFalse(content.isEmpty(), file + " was not written by the pipeline");
         return content;
-    }
-
-    /** Polls for the given duration; reports whether the process is still there at the end. */
-    private static boolean isAliveAfter(long pid, long millis) throws InterruptedException {
-        long deadline = System.currentTimeMillis() + millis;
-        while (true) {
-            java.util.Optional<ProcessHandle> handle = ProcessHandle.of(pid);
-            if (handle.isEmpty() || !handle.get().isAlive()) {
-                return false;
-            }
-            if (System.currentTimeMillis() >= deadline) {
-                return true;
-            }
-            Thread.sleep(250);
-        }
     }
 }
