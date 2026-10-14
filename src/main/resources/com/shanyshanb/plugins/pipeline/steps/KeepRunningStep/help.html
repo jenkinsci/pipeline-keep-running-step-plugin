@@ -4,8 +4,14 @@
 <p>
     <strong>Example:</strong><br/>
     <code><pre>
-keepRunning {
-    sh '/usr/local/apache-tomact/bin/startup.sh
+node {
+    keepRunning {
+        sh '/usr/local/apache-tomcat/bin/startup.sh'
+    }
 }
 	</pre></code>
+</p>
+<p>
+    This step requires a workspace and a task listener, so it must be used inside a
+    <code>node</code> block, just like the <code>sh</code> step it wraps.
 </p>
