@@ -23,7 +23,13 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Both platforms matter: the step manipulates a POSIX shell environment and its
+      # behaviour is not identical on Windows agents.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
       - name: Set up JDK 21
