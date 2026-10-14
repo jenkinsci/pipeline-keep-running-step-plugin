@@ -1,56 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.9</version>
+    <version>6.2236.v12dd4c483242</version>
     <relativePath />
   </parent>
+
+  <!--
+    Plugin ID (artifactId) must not change: pipeline-keep-running-step.
+    The groupId io.jenkins.plugins is the current convention for Jenkins plugins.
+  -->
   <groupId>io.jenkins.plugins</groupId>
   <artifactId>pipeline-keep-running-step</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Pipeline Keep Running Step</name>
   <description>This plugin provides keepRunning step to keep the process running even if the build has finished.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+
   <licenses>
     <license>
       <name>MIT License</name>
       <url>https://opensource.org/license/mit/</url>
     </license>
   </licenses>
+
+  <developers>
+    <developer>
+      <id>hummerstudio</id>
+      <name>Tang Ming</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+
   <scm>
-    <connection>scm:git:https://github.com/jenkinsci/pipeline-keep-running-step-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/pipeline-keep-running-step-plugin.git</developerConnection>
-    <tag>pipeline-keep-running-step-1.2</tag>
-    <url>https://github.com/jenkinsci/pipeline-keep-running-step-plugin</url>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <tag>${scmTag}</tag>
+    <url>https://github.com/${gitHubRepo}</url>
   </scm>
 
   <properties>
-    <revision>1.0</revision>
-    <changelist>-SNAPSHOT</changelist>
-    <jenkins.baseline>2.479</jenkins.baseline>
+    <!--
+      Continuous delivery (JEP-229): the released version is computed by the
+      git-changelist-maven-extension from the Git history depth and commit hash,
+      so no maintainer-chosen version number and no maven-release-plugin are needed.
+      See https://www.jenkins.io/doc/developer/publishing/releasing-cd/
+    -->
+    <changelist>999999-SNAPSHOT</changelist>
 
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.baseline>2.568</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
 
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
         <!-- Pick up common dependencies for the selected LTS line: https://github.com/jenkinsci/bom#usage -->
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>4488.v7fe26526366e</version>
+        <version>7169.vb_32a_cfd93fa_6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -60,10 +86,8 @@
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-step-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins.workflow</groupId>
-      <artifactId>workflow-step-api</artifactId>
-    </dependency>
+
+    <!-- Test scope: Pipeline test harness, used by integration tests -->
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-api</artifactId>
