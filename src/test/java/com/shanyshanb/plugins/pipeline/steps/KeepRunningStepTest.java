@@ -1,8 +1,8 @@
 package com.shanyshanb.plugins.pipeline.steps;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.FilePath;
@@ -20,7 +20,7 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
  * build-scoped {@code JENKINS_NODE_COOKIE} value in their environment, and this step works by
  * replacing that value with the constant {@code keepRunning} for everything inside its body. The
  * tests assert both the mechanism (the cookie the child process really sees) and the outcome (the
- * process is still running after the build finished).
+ * process is still working after the build finished).
  *
  * <p>The step requires a {@link FilePath} and {@code TaskListener} context, so it has to be used
  * inside a {@code node} block - the same requirement as the {@code sh} step it normally wraps.
@@ -29,15 +29,16 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 class KeepRunningStepTest {
 
     /**
-     * Writes the current time to {@code heartbeat.txt} once a second, then exits on its own after
+     * Rewrites {@code heartbeat.txt} with the current time once a second, then exits on its own after
      * about 40 seconds so that a surviving process cannot outlive the test run.
      *
-     * <p>Liveness is deliberately observed through the file rather than through a pid: on Windows the
-     * {@code sh} step runs under Git Bash, whose pids are MSYS pids that {@code ProcessHandle} in the
-     * test JVM cannot resolve (this test used to fail on the windows-21 CI leg for that reason).
+     * <p>The file is produced through a temporary file and a rename so a reader never observes a
+     * half-written file; liveness is observed through the file rather than through a pid because the
+     * {@code sh} step runs under Git Bash on Windows, where pids are MSYS pids that the test JVM
+     * cannot resolve.
      */
-    private static final String START_HEARTBEAT_PROCESS =
-            "sh 'i=0; while [ $i -lt 40 ]; do date > heartbeat.txt; i=$((i+1)); sleep 1; done > /dev/null 2>&1 &'";
+    private static final String START_HEARTBEAT_PROCESS = "sh 'i=0; while [ $i -lt 40 ]; do date > heartbeat.tmp;"
+            + " mv -f heartbeat.tmp heartbeat.txt; i=$((i+1)); sleep 1; done > /dev/null 2>&1 &'";
 
     /** Records the JENKINS_NODE_COOKIE the child process actually runs with. */
     private static final String RECORD_COOKIE = "sh 'printf %s \"$JENKINS_NODE_COOKIE\" > cookie.txt'";
@@ -80,11 +81,15 @@ class KeepRunningStepTest {
 
         j.buildAndAssertSuccess(p);
 
-        String first = readFromWorkspace(j, p, "heartbeat.txt");
+        String first = awaitHeartbeat(j, p);
+        assertNotNull(
+                first,
+                "the background process never wrote heartbeat.txt, so it either did not start or was killed"
+                        + " right away");
         Thread.sleep(4_000);
-        String second = readFromWorkspace(j, p, "heartbeat.txt");
+        String second = awaitHeartbeat(j, p);
 
-        // The loop keeps rewriting the file every second; if the build had killed it, it would be frozen.
+        // The loop rewrites the file every second; a killed process would leave it frozen or missing.
         assertNotEquals(
                 first,
                 second,
@@ -92,10 +97,36 @@ class KeepRunningStepTest {
                         + " (heartbeat.txt is still <" + first + ">)");
     }
 
+    /** Polls for a non-empty heartbeat value; returns {@code null} if it never appears. */
+    private static String awaitHeartbeat(JenkinsRule j, WorkflowJob p) throws Exception {
+        long deadline = System.currentTimeMillis() + 20_000;
+        while (System.currentTimeMillis() < deadline) {
+            String content = readQuietly(j, p, "heartbeat.txt");
+            if (content != null && !content.isEmpty()) {
+                return content;
+            }
+            Thread.sleep(500);
+        }
+        return null;
+    }
+
     private static String readFromWorkspace(JenkinsRule j, WorkflowJob p, String file) throws Exception {
-        FilePath ws = j.jenkins.getWorkspaceFor(p);
-        String content = ws.child(file).readToString().trim();
-        assertFalse(content.isEmpty(), file + " was not written by the pipeline");
+        String content = readQuietly(j, p, file);
+        assertNotNull(content, file + " does not exist in " + j.jenkins.getWorkspaceFor(p));
+        assertTrue(!content.isEmpty(), file + " was not written by the pipeline");
         return content;
+    }
+
+    /** Reads a workspace file, returning {@code null} when it is missing, empty or being rewritten. */
+    private static String readQuietly(JenkinsRule j, WorkflowJob p, String file) {
+        try {
+            FilePath child = j.jenkins.getWorkspaceFor(p).child(file);
+            if (!child.exists()) {
+                return null;
+            }
+            return child.readToString().trim();
+        } catch (Exception e) {
+            return null; // raced with the writer
+        }
     }
 }
