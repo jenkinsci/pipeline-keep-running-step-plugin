@@ -24,9 +24,9 @@
 
 package com.shanyshanb.plugins.pipeline.steps;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.jenkinsci.plugins.workflow.steps.*;
 
 /**
@@ -37,7 +37,7 @@ import org.jenkinsci.plugins.workflow.steps.*;
 public class KeepRunningStepExecution extends AbstractStepExecutionImpl {
     private static final long serialVersionUID = 1L;
 
-    protected KeepRunningStepExecution(@Nonnull StepContext context) {
+    protected KeepRunningStepExecution(@NonNull StepContext context) {
         super(context);
     }
 

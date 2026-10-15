@@ -24,11 +24,11 @@
 package com.shanyshanb.plugins.pipeline.steps;
 
 import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.TaskListener;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -70,7 +70,7 @@ public class KeepRunningStep extends Step {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return Messages.KeepRunningStep_DescriptorImpl_displayName();
         }

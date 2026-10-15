@@ -1,0 +1,42 @@
+# Supplementary build validation on GitHub-hosted runners.
+#
+# The community CI for Jenkins plugins is ci.jenkins.io, driven by the Jenkinsfile
+# in the repository root; this workflow exists so that fork/PR builds get a fast,
+# self-contained `mvn verify` signal on every push without any repository secret.
+---
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Both platforms matter: the step manipulates a POSIX shell environment and its
+      # behaviour is not identical on Windows agents.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Build and verify
+        run: mvn -B -ntp clean verify
